@@ -13,8 +13,6 @@ xmlgetnext () {
    read -d ']' VAL1 VAL2 VAL3 VAL4
 }
 
-LAST="initial"
-
 readlasttitle () {
    rm -f .templt
    cat .lastTitle | while read U T 
@@ -22,10 +20,7 @@ readlasttitle () {
       #echo Read $U"---->"$T >&2
       if [[ $1 == $U ]]
       then
-         echo LAST=$LAST >&2
          echo $T
-         #export LAST=$T
-         echo LAST=$LAST >&2
       else
          echo $U $T >> .templt
       fi
