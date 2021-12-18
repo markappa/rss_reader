@@ -13,29 +13,55 @@ xmlgetnext () {
    read -d ']' VAL1 VAL2 VAL3 VAL4
 }
 
+LAST="initial"
+
+readlasttitle () {
+   rm -f .templt
+   cat .lastTitle | while read U T 
+   do
+      #echo Read $U"---->"$T >&2
+      if [[ $1 == $U ]]
+      then
+         echo LAST=$LAST >&2
+         echo $T
+         #export LAST=$T
+         echo LAST=$LAST >&2
+      else
+         echo $U $T >> .templt
+      fi
+   done
+   if [[ -f .templt ]] ; then
+      mv .templt .lastTitle
+   else
+      rm -f .lastTitle
+      touch .lastTitle
+   fi
+}
+
 if [[ $1 == "" ]]
 then 
-   URL=https://www.ansa.it/lombardia/notizie/lombardia_rss.xml
+   URL=https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml
 else
    URL=$1
 fi
 
 FIRST=1
-LASTTITLE=$(cat .lastTitle)
+LAST=$(readlasttitle $URL)
+echo LAST=$LAST
 
 curl -s $URL | while xmlgetnext ; do
    if [[ $VAL3 != "" ]] ; then
       echo $VAL3;
-      if [[ $LASTTITLE == $VAL3 ]]
-      then
-         echo No new titles
-         exit 0
-      fi
-
       if [ $FIRST -eq 1 ]
       then
          FIRST=0
-         echo $VAL3 > .lastTitle
+         echo $URL $VAL3 >> .lastTitle
+      fi
+
+      if [[ $LAST == $VAL3 ]]
+      then
+         echo No new titles
+         exit 0
       fi
 
       curl -s -X POST -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"\
