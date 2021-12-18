@@ -3,6 +3,7 @@
 # https://www.ansa.it/sito/ansait_rss.xml
 # https://www.ansa.it/lombardia/notizie/lombardia_rss.xml
 # https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml
+# https://www.ansa.it/sito/notizie/tecnologia/tecnologia_rss.xml
 
 # See here for full list:
 # https://www.ansa.it/sito/static/ansa_rss.html
@@ -42,11 +43,11 @@ fi
 
 FIRST=1
 LAST=$(readlasttitle $URL)
-echo LAST=$LAST
+#echo LAST=$LAST
 
 curl -s $URL | while xmlgetnext ; do
    if [[ $VAL3 != "" ]] ; then
-      echo $VAL3;
+      #echo $VAL3;
       if [ $FIRST -eq 1 ]
       then
          FIRST=0
@@ -55,9 +56,16 @@ curl -s $URL | while xmlgetnext ; do
 
       if [[ $LAST == $VAL3 ]]
       then
-         echo No new titles
+         #echo No new titles
          exit 0
       fi
+
+      while curl -s -X GET -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"\
+         http://supervisor/core/api/states/media_player.mpd | grep -q "playing" ;
+      do
+         #echo waiting
+         sleep 1
+      done
 
       curl -s -X POST -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"\
          -H "Content-Type: application/json"\
@@ -71,12 +79,6 @@ curl -s $URL | while xmlgetnext ; do
       #echo
       sleep 1
 
-      while curl -s -X GET -H "Authorization: Bearer ${SUPERVISOR_TOKEN}"\
-         http://supervisor/core/api/states/media_player.mpd | grep -q "playing" ;
-      do
-         #echo waiting
-         sleep 1
-      done
    fi
 done
 
